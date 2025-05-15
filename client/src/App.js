@@ -1,17 +1,21 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import StartPage from './components/StartPage';
-import BibleViewer from './components/BibleViewer'; // Your Bible Viewer component
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import BibleViewer from './components/BibleViewer';
+import Favourites from './components/Favourites';
 
-const App = () => {
-  return (
-    <Router>
-      <Switch>
-        <Route path="/" exact component={StartPage} />
-        <Route path="/bible" component={BibleViewer} />
-      </Switch>
-    </Router>
-  );
-};
+const App = () => (
+  <Router>
+    <div className="p-4 max-w-5xl mx-auto">
+      <nav className="mb-6 flex justify-between">
+        <Link to="/" className="text-blue-600 font-semibold">📖 Bible</Link>
+        <Link to="/favourites" className="text-blue-600 font-semibold">⭐ Favourites</Link>
+      </nav>
+      <Routes>
+        <Route path="/" element={<BibleViewer />} />
+        <Route path="/favourites" element={<Favourites />} />
+      </Routes>
+    </div>
+  </Router>
+);
 
 export default App;
