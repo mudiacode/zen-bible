@@ -2,83 +2,72 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const BibleViewer = () => {
-  const [selectedBook, setSelectedBook] = useState('Genesis');
+  const [selectedBook, setSelectedBook] = useState('');
   const [selectedChapter, setSelectedChapter] = useState(1);
   const [verses, setVerses] = useState([]);
+  const [books, setBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [favorites, setFavorites] = useState(() => JSON.parse(localStorage.getItem('favorites') || '[]'));
-  const [books, setBooks] = useState([]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('bible.json')
+    fetch('/bible.json')
       .then(res => res.json())
       .then(data => {
-        const availableBooks = Object.keys(data);
-        setBooks(availableBooks);
-        if (!availableBooks.includes(selectedBook)) {
-          setSelectedBook(availableBooks[0]);
-        }
+        const allBooks = Object.keys(data);
+        setBooks(allBooks);
+        setSelectedBook(allBooks[0]);
       });
   }, []);
 
   useEffect(() => {
-    fetch('bible.json')
-      .then(res => res.json())
-      .then(data => {
-        const bookChapters = data[selectedBook];
-        if (bookChapters && bookChapters[selectedChapter]) {
-          const chapterVerses = bookChapters[selectedChapter];
-          const formattedVerses = Object.entries(chapterVerses).map(([verse, text]) => ({
-            book: selectedBook,
-            chapter: selectedChapter,
-            verse: Number(verse),
-            text
-          }));
-          setVerses(formattedVerses);
-        } else {
-          setVerses([]);
-        }
-      })
-      .catch(() => setVerses([]));
+    if (selectedBook) {
+      fetch('/bible.json')
+        .then(res => res.json())
+        .then(data => {
+          const chapterData = data[selectedBook]?.[selectedChapter];
+          setVerses(chapterData ? Object.entries(chapterData) : []);
+        });
+    }
   }, [selectedBook, selectedChapter]);
 
-  const filtered = verses.filter(v =>
-    v.text.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredVerses = verses.filter(([_, text]) =>
+    text.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const toggleFavorite = (verseId) => {
-    const updatedFavorites = favorites.includes(verseId)
-      ? favorites.filter(id => id !== verseId)
-      : [...favorites, verseId];
-
-    setFavorites(updatedFavorites);
-    localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+  const toggleFavorite = (verseNum) => {
+    const id = `${selectedBook}-${selectedChapter}-${verseNum}`;
+    const updated = favorites.includes(id)
+      ? favorites.filter(v => v !== id)
+      : [...favorites, id];
+    setFavorites(updated);
+    localStorage.setItem('favorites', JSON.stringify(updated));
   };
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-4xl font-bold text-blue-700 mb-4">📖 Bible Viewer</h1>
-
       <div className="flex justify-between items-center mb-4">
-        <p className="text-sm text-gray-600 italic">
-          ⭐ Click a verse to save it as a favorite.
-        </p>
+        <h1 className="text-3xl font-bold text-blue-700">📖 Bible Viewer</h1>
         <button
-          className="bg-yellow-300 hover:bg-yellow-400 text-black px-4 py-1 rounded"
           onClick={() => navigate('/favourites')}
+          className="px-4 py-2 border border-yellow-500 text-yellow-600 rounded hover:bg-yellow-50"
         >
           ⭐ View Favourites
         </button>
       </div>
+
+      <p className="text-sm text-gray-600 mb-4 italic">
+        Click a verse to save it as a favourite.
+      </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Book</label>
           <select
             value={selectedBook}
-            onChange={e => setSelectedBook(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded bg-white"
+            onChange={(e) => setSelectedBook(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
           >
             {books.map(book => (
               <option key={book} value={book}>{book}</option>
@@ -92,8 +81,8 @@ const BibleViewer = () => {
             type="number"
             min={1}
             value={selectedChapter}
-            onChange={e => setSelectedChapter(Number(e.target.value))}
-            className="w-full p-2 border border-gray-300 rounded bg-white"
+            onChange={(e) => setSelectedChapter(Number(e.target.value))}
+            className="w-full p-2 border border-gray-300 rounded"
           />
         </div>
       </div>
@@ -102,26 +91,29 @@ const BibleViewer = () => {
         type="text"
         placeholder="🔍 Search this chapter..."
         value={searchTerm}
-        onChange={e => setSearchTerm(e.target.value)}
-        className="w-full mb-6 p-2 border border-gray-300 rounded bg-white"
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full mb-6 p-2 border border-gray-300 rounded"
       />
 
-      <div className="bg-white border border-gray-200 rounded-lg shadow p-6 leading-relaxed">
-        {filtered.length === 0 ? (
-          <p className="text-center text-gray-500 italic">No verses found.</p>
+      <div className="border border-gray-300 rounded p-4 leading-relaxed space-y-4">
+        {filteredVerses.length === 0 ? (
+          <p className="text-gray-500 italic">No verses found.</p>
         ) : (
-          <div className="space-y-4">
-            {filtered.map((verse) => (
-              <span
-                key={verse.verse}
-                className={`cursor-pointer inline ${favorites.includes(`${verse.book}-${verse.chapter}-${verse.verse}`) ? 'bg-yellow-200' : ''}`}
-                onClick={() => toggleFavorite(`${verse.book}-${verse.chapter}-${verse.verse}`)}
-              >
-                <sup className="font-bold text-blue-600 mr-1">{verse.verse}</sup>
-                {verse.text} 
-              </span>
-            ))}
-          </div>
+          <p className="space-x-2 flex flex-wrap">
+            {filteredVerses.map(([num, text]) => {
+              const id = `${selectedBook}-${selectedChapter}-${num}`;
+              const isFav = favorites.includes(id);
+              return (
+                <span
+                  key={num}
+                  onClick={() => toggleFavorite(num)}
+                  className={`cursor-pointer ${isFav ? 'bg-yellow-200' : ''}`}
+                >
+                  <sup className="text-blue-600 font-bold">{num}</sup> {text}
+                </span>
+              );
+            })}
+          </p>
         )}
       </div>
     </div>
