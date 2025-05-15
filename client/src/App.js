@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import StartScreen from './components/StartScreen';
 import BibleViewer from './components/BibleViewer';
 import Favourites from './components/Favourites';
