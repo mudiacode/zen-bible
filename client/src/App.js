@@ -7,7 +7,7 @@ const App = () => (
   <Router>
     <div className="p-4 max-w-5xl mx-auto">
       <nav className="mb-6 flex justify-between">
-        <Link to="/" className="text-blue-600 font-semibold">📖 Bible</Link>
+        <Link to="/" className="text-blue-600 font-semibold">Zen Bible</Link>
         <Link to="/favourites" className="text-blue-600 font-semibold">⭐ Favourites</Link>
       </nav>
       <Routes>
