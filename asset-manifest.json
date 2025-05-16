@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/zen-bible/static/js/main.e0eebbbd.js",
+    "index.html": "/zen-bible/index.html",
+    "main.e0eebbbd.js.map": "/zen-bible/static/js/main.e0eebbbd.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.e0eebbbd.js"
+  ]
+}
