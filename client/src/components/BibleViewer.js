@@ -12,7 +12,7 @@ const BibleViewer = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('/bible.json')
+    fetch(`${process.env.PUBLIC_URL}/bible.json`)
       .then(res => res.json())
       .then(data => {
         const allBooks = Object.keys(data);
@@ -23,7 +23,7 @@ const BibleViewer = () => {
 
   useEffect(() => {
     if (selectedBook) {
-      fetch('/bible.json')
+    fetch(`${process.env.PUBLIC_URL}/bible.json`)
         .then(res => res.json())
         .then(data => {
           const chapterData = data[selectedBook]?.[selectedChapter];
